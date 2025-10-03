@@ -20,6 +20,7 @@ public partial class VisionManagementContext : DbContext
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Project> Projects { get; set; }
     public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
+    public DbSet<Evaluation> Evaluations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
