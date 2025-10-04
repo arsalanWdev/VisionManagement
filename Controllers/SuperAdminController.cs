@@ -16,7 +16,6 @@ namespace VisionManagement.Controllers
         {
             _context = context;
         }
-
         [HttpGet("getAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -27,16 +26,22 @@ namespace VisionManagement.Controllers
                 {
                     u.UserId,
                     u.Username,
+                    u.PasswordHash,
                     u.Email,
-                    Role = u.Role.RoleName
+                    u.OtpCode,
+                    u.OtpExpiration,
+                    u.IsOtpVerified,
+                    u.RoleId,
+                    RoleName = u.Role.RoleName
                 })
                 .ToListAsync();
 
             if (!users.Any())
-                return NotFound("No users with role 'User' found."); 
+                return NotFound("No users with role 'User' found.");
 
             return Ok(users);
         }
+
         [HttpPost("assignProject")]
         public async Task<IActionResult> AssignProject([FromBody] AssignProjectDto dto)
         {
