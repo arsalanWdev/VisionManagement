@@ -28,10 +28,6 @@ namespace VisionManagement.Controllers
                     u.UserId,
                     u.Username,
                     u.PasswordHash,
-                    u.Email,
-                    u.OtpCode,
-                    u.OtpExpiration,
-                    u.IsOtpVerified,
                     u.RoleId,
                     RoleName = u.Role.RoleName
                 })
@@ -132,8 +128,7 @@ namespace VisionManagement.Controllers
                 {
                     pa.User.UserId,
                     pa.User.Username,
-                    pa.User.Email,
-                    pa.User.IsOtpVerified,
+                   
                     pa.AssignedAt
                 })
                 .ToListAsync();

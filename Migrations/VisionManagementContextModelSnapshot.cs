@@ -222,20 +222,6 @@ namespace VisionManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsOtpVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OtpCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OtpExpiration")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -255,9 +241,6 @@ namespace VisionManagement.Migrations
                     b.HasIndex("RoleId");
 
                     b.HasIndex(new[] { "Username" }, "UQ__Users__536C85E4C2ADC1BA")
-                        .IsUnique();
-
-                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534426C232E")
                         .IsUnique();
 
                     b.ToTable("Users");

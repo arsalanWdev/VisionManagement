@@ -52,7 +52,7 @@ namespace VisionManagement.Controllers
                 .AnyAsync(e => e.ProjectId == projectId && e.UserId == userId);
 
             if (existing)
-                return BadRequest("You have already evaluated this project.");
+                return BadRequest("You have already evaluated this project. Use PUT to update.");
 
             var evaluation = new Evaluation
             {
@@ -75,6 +75,37 @@ namespace VisionManagement.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "✅ Evaluation submitted successfully", evaluation });
+        }
+
+        // ================== EVALUATOR: EDIT/UPDATE EVALUATION ==================
+        [HttpPut("{projectId}")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> EditEvaluation(int projectId, [FromBody] EvaluationDto dto)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var evaluation = await _context.Evaluations
+                .FirstOrDefaultAsync(e => e.ProjectId == projectId && e.UserId == userId);
+
+            if (evaluation == null)
+                return NotFound("You have not submitted an evaluation for this project yet.");
+
+            // Update fields
+            evaluation.ProblemSignificance = dto.ProblemSignificance;
+            evaluation.InnovationTechnical = dto.InnovationTechnical;
+            evaluation.MarketScalability = dto.MarketScalability;
+            evaluation.TractionImpact = dto.TractionImpact;
+            evaluation.BusinessModel = dto.BusinessModel;
+            evaluation.TeamExecution = dto.TeamExecution;
+            evaluation.EthicsEquity = dto.EthicsEquity;
+            evaluation.Strengths = dto.Strengths;
+            evaluation.Weaknesses = dto.Weaknesses;
+            evaluation.Recommendation = dto.Recommendation;
+            evaluation.EvaluatedAt = DateTime.UtcNow; // mark update time
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "✅ Evaluation updated successfully", evaluation });
         }
 
         // ================== EVALUATOR: GET MY EVALUATIONS ==================
@@ -100,6 +131,7 @@ namespace VisionManagement.Controllers
             var evaluations = await _context.Evaluations
                 .Where(e => e.ProjectId == projectId)
                 .Include(e => e.User)
+                .Include(e => e.Project)
                 .ToListAsync();
 
             return Ok(evaluations);

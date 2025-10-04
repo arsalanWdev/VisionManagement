@@ -56,9 +56,6 @@ public partial class VisionManagementContext : DbContext
 
             entity.HasIndex(e => e.Username, "UQ__Users__536C85E4C2ADC1BA").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534426C232E").IsUnique();
-
-            entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.Username).HasMaxLength(50);
 

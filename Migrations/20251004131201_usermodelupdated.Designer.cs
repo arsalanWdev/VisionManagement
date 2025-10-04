@@ -12,8 +12,8 @@ using VisionManagement.Models;
 namespace VisionManagement.Migrations
 {
     [DbContext(typeof(VisionManagementContext))]
-    [Migration("20251003101512_UpdateSpotlightReasonLength")]
-    partial class UpdateSpotlightReasonLength
+    [Migration("20251004131201_usermodelupdated")]
+    partial class usermodelupdated
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,62 @@ namespace VisionManagement.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("VisionManagement.Models.Evaluation", b =>
+                {
+                    b.Property<int>("EvaluationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EvaluationId"));
+
+                    b.Property<int>("BusinessModel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EthicsEquity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EvaluatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InnovationTechnical")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MarketScalability")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProblemSignificance")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Recommendation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Strengths")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TeamExecution")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TractionImpact")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Weaknesses")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EvaluationId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Evaluations");
+                });
+
             modelBuilder.Entity("VisionManagement.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -32,6 +88,10 @@ namespace VisionManagement.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultVideo")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -45,6 +105,18 @@ namespace VisionManagement.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("Image1")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Image2")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Image3")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<string>("MobileAppLink")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
@@ -52,6 +124,10 @@ namespace VisionManagement.Migrations
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PitchVideo")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("ProjectDemoVideoLink")
                         .HasMaxLength(250)
@@ -93,6 +169,32 @@ namespace VisionManagement.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("VisionManagement.Models.ProjectAssignment", b =>
+                {
+                    b.Property<int>("AssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssignmentId"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AssignmentId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProjectAssignments");
+                });
+
             modelBuilder.Entity("VisionManagement.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -123,20 +225,6 @@ namespace VisionManagement.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsOtpVerified")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OtpCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OtpExpiration")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -158,10 +246,45 @@ namespace VisionManagement.Migrations
                     b.HasIndex(new[] { "Username" }, "UQ__Users__536C85E4C2ADC1BA")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "Email" }, "UQ__Users__A9D10534426C232E")
-                        .IsUnique();
-
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("VisionManagement.Models.Evaluation", b =>
+                {
+                    b.HasOne("VisionManagement.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VisionManagement.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("VisionManagement.Models.ProjectAssignment", b =>
+                {
+                    b.HasOne("VisionManagement.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VisionManagement.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("VisionManagement.Models.User", b =>
