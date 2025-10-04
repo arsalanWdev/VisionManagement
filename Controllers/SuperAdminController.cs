@@ -147,6 +147,26 @@ namespace VisionManagement.Controllers
                 assignedUsers
             });
         }
+
+        // ✅ Remove (Unassign) a user from a project
+        [HttpDelete("unassignUser/{projectId}/{userId}")]
+        public async Task<IActionResult> UnassignUser(int projectId, int userId)
+        {
+            var assignment = await _context.ProjectAssignments
+                .FirstOrDefaultAsync(pa => pa.ProjectId == projectId && pa.UserId == userId);
+
+            if (assignment == null)
+                return NotFound($"No assignment found for user {userId} in project {projectId}.");
+
+            _context.ProjectAssignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"User {userId} unassigned from project {projectId} successfully."
+            });
+        }
+
     }
 
     // ✅ DTO
