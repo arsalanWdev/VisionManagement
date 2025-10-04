@@ -23,6 +23,13 @@ namespace VisionManagement.Controllers
             var users = await _context.Users
                 .Include(u => u.Role)
                 .Where(u => u.Role.RoleName == "User")
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.Username,
+                    u.Email,
+                    Role = u.Role.RoleName
+                })
                 .ToListAsync();
 
             if (!users.Any())
@@ -30,7 +37,6 @@ namespace VisionManagement.Controllers
 
             return Ok(users);
         }
-
         [HttpPost("assignProject")]
         public async Task<IActionResult> AssignProject([FromBody] AssignProjectDto dto)
         {
