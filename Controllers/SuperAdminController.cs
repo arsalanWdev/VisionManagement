@@ -33,7 +33,7 @@ namespace VisionManagement.Controllers
                 .ToListAsync();
 
             if (!users.Any())
-                return NotFound("No users with role 'User' found.");
+                return NotFound("No users with role 'User' found."); 
 
             return Ok(users);
         }
