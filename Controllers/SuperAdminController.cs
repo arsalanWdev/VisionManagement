@@ -17,7 +17,6 @@ namespace VisionManagement.Controllers
             _context = context;
         }
 
-        // ✅ Get all users with role "User"
         [HttpGet("getAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -44,7 +43,6 @@ namespace VisionManagement.Controllers
             return Ok(users);
         }
 
-        // ✅ Assign project to multiple users
         [HttpPost("assignProject")]
         public async Task<IActionResult> AssignProject([FromBody] AssignProjectDto dto)
         {
@@ -77,7 +75,6 @@ namespace VisionManagement.Controllers
             });
         }
 
-        // ✅ Update project assignment (replace assigned users)
         [HttpPut("updateAssignment")]
         public async Task<IActionResult> UpdateAssignment([FromBody] AssignProjectDto dto)
         {
@@ -85,18 +82,24 @@ namespace VisionManagement.Controllers
             if (project == null)
                 return NotFound("Project not found.");
 
-            // Remove old assignments
-            var oldAssignments = _context.ProjectAssignments.Where(pa => pa.ProjectId == dto.ProjectId);
-            _context.ProjectAssignments.RemoveRange(oldAssignments);
+            var existingAssignments = await _context.ProjectAssignments
+                .Where(pa => pa.ProjectId == dto.ProjectId)
+                .ToListAsync();
 
-            // Add new assignments
+            var alreadyAssignedUserIds = existingAssignments.Select(pa => pa.UserId).ToHashSet();
+
+            var newUserIds = dto.UserIds.Where(id => !alreadyAssignedUserIds.Contains(id)).ToList();
+
+            if (!newUserIds.Any())
+                return BadRequest("All selected users are already assigned to this project.");
+
             var evaluators = await _context.Users
                 .Include(u => u.Role)
-                .Where(u => dto.UserIds.Contains(u.UserId) && u.Role.RoleName == "User")
+                .Where(u => newUserIds.Contains(u.UserId) && u.Role.RoleName == "User")
                 .ToListAsync();
 
             if (!evaluators.Any())
-                return BadRequest("No valid evaluators found.");
+                return BadRequest("No valid new evaluators found.");
 
             var newAssignments = evaluators.Select(e => new ProjectAssignment
             {
@@ -110,12 +113,11 @@ namespace VisionManagement.Controllers
 
             return Ok(new
             {
-                message = $"Assignments for project '{project.StartupName}' updated. Now {evaluators.Count} evaluator(s) assigned.",
-                assignedUsers = evaluators.Select(e => e.Username).ToList()
+                message = $"Project '{project.StartupName}' updated. {newAssignments.Count} new evaluator(s) added.",
+                addedUsers = evaluators.Select(e => e.Username).ToList()
             });
         }
 
-        // ✅ Get all users assigned to a project
         [HttpGet("getAssignedUsers/{projectId}")]
         public async Task<IActionResult> GetAssignedUsers(int projectId)
         {
