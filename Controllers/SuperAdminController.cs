@@ -16,6 +16,8 @@ namespace VisionManagement.Controllers
         {
             _context = context;
         }
+
+        // ✅ Get all users with role "User"
         [HttpGet("getAllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -42,6 +44,7 @@ namespace VisionManagement.Controllers
             return Ok(users);
         }
 
+        // ✅ Assign project to multiple users
         [HttpPost("assignProject")]
         public async Task<IActionResult> AssignProject([FromBody] AssignProjectDto dto)
         {
@@ -73,11 +76,81 @@ namespace VisionManagement.Controllers
                 assignedUsers = evaluators.Select(e => e.Username).ToList()
             });
         }
+
+        // ✅ Update project assignment (replace assigned users)
+        [HttpPut("updateAssignment")]
+        public async Task<IActionResult> UpdateAssignment([FromBody] AssignProjectDto dto)
+        {
+            var project = await _context.Projects.FindAsync(dto.ProjectId);
+            if (project == null)
+                return NotFound("Project not found.");
+
+            // Remove old assignments
+            var oldAssignments = _context.ProjectAssignments.Where(pa => pa.ProjectId == dto.ProjectId);
+            _context.ProjectAssignments.RemoveRange(oldAssignments);
+
+            // Add new assignments
+            var evaluators = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => dto.UserIds.Contains(u.UserId) && u.Role.RoleName == "User")
+                .ToListAsync();
+
+            if (!evaluators.Any())
+                return BadRequest("No valid evaluators found.");
+
+            var newAssignments = evaluators.Select(e => new ProjectAssignment
+            {
+                ProjectId = project.Id,
+                UserId = e.UserId,
+                AssignedAt = DateTime.UtcNow
+            }).ToList();
+
+            await _context.ProjectAssignments.AddRangeAsync(newAssignments);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = $"Assignments for project '{project.StartupName}' updated. Now {evaluators.Count} evaluator(s) assigned.",
+                assignedUsers = evaluators.Select(e => e.Username).ToList()
+            });
+        }
+
+        // ✅ Get all users assigned to a project
+        [HttpGet("getAssignedUsers/{projectId}")]
+        public async Task<IActionResult> GetAssignedUsers(int projectId)
+        {
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null)
+                return NotFound("Project not found.");
+
+            var assignedUsers = await _context.ProjectAssignments
+                .Include(pa => pa.User)
+                .Where(pa => pa.ProjectId == projectId)
+                .Select(pa => new
+                {
+                    pa.User.UserId,
+                    pa.User.Username,
+                    pa.User.Email,
+                    pa.User.IsOtpVerified,
+                    pa.AssignedAt
+                })
+                .ToListAsync();
+
+            if (!assignedUsers.Any())
+                return NotFound("No users assigned to this project.");
+
+            return Ok(new
+            {
+                project = project.StartupName,
+                assignedUsers
+            });
+        }
     }
 
+    // ✅ DTO
     public class AssignProjectDto
     {
         public int ProjectId { get; set; }
-        public List<int> UserIds { get; set; }
+        public List<int> UserIds { get; set; } = new List<int>();
     }
 }
